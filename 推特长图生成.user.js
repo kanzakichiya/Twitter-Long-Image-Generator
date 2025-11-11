@@ -1,21 +1,21 @@
 // ==UserScript==
-// @name         推特长图生成
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  将推文转换为高清长图片。修复了日期换行和截断的问题。
-// @author       kanzakichiya
-// @match        *://*.twitter.com/*
-// @match        *://*.x.com/*
-// @require      https://cdn.jsdelivr.net/npm/@zumer/snapdom/dist/snapdom.min.js
-// @require      https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js
-// @grant        GM_addStyle
-// @grant        GM_xmlhttprequest
-// @grant        GM.xmlHttpRequest
-// @connect      cdn.jsdelivr.net
-// @connect      abs-0.twimg.com
-// @connect      *.twimg.com
-// @connect      pbs.twimg.com
-// @license      MIT
+// @name        推特长图生成
+// @namespace   http://tampermonkey.net/
+// @version     1.1
+// @description 将推文转换为高清长图片。修复了日期换行和截断的问题。
+// @author      kanzakichiya
+// @match       *://*.twitter.com/*
+// @match       *://*.x.com/*
+// @require     https://cdn.jsdelivr.net/npm/@zumer/snapdom/dist/snapdom.min.js
+// @require     https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js
+// @grant       GM_addStyle
+// @grant       GM_xmlhttprequest
+// @grant       GM.xmlHttpRequest
+// @connect     cdn.jsdelivr.net
+// @connect     abs-0.twimg.com
+// @connect     *.twimg.com
+// @connect     pbs.twimg.com
+// @license     MIT
 // ==/UserScript==
 
 (function() {
@@ -84,27 +84,6 @@
         } catch (e) { return src; }
     }
 
-    // 自动展开长文
-    async function expandTweet(tweetElement) {
-        try {
-            let showMoreBtn = tweetElement.querySelector('[data-testid="tweet-text-show-more-link"]') || tweetElement.querySelector('[data-testid="tweet-text-show-more-toggle"]');
-            if (!showMoreBtn) {
-                const possibleButtons = tweetElement.querySelectorAll('span[role="button"], div[role="button"], button');
-                for (const btn of possibleButtons) {
-                    if (['显示更多', '顯示更多', 'Show more'].includes(btn.textContent.trim())) {
-                        showMoreBtn = btn; break;
-                    }
-                }
-            }
-            if (showMoreBtn) {
-                showMoreBtn.click();
-                await new Promise(resolve => setTimeout(resolve, 1000)); // 等待展开渲染
-                return true;
-            }
-        } catch (e) { console.error("Expansion failed", e); }
-        return false;
-    }
-
     async function handleGenerateClick(event) {
         event.preventDefault(); event.stopPropagation();
         const button = event.currentTarget;
@@ -139,9 +118,7 @@
             }
             tweetElementsToProcess.push(currentTweet);
 
-            for (let i = 0; i < tweetElementsToProcess.length; i++) {
-                await expandTweet(tweetElementsToProcess[i]);
-            }
+            // 已删除自动展开长文的循环调用
 
             const tweetsData = [];
             for (let i = 0; i < tweetElementsToProcess.length; i++) {
@@ -431,5 +408,5 @@
     })));
     observer.observe(document.body, { childList: true, subtree: true });
     setInterval(() => document.querySelectorAll('article[data-testid="tweet"]').forEach(injectButton), 1500);
-    console.log('Twitter to Image Generator (SnapDOM version 1.3) loaded!');
+    console.log('Twitter to Image Generator (SnapDOM version 1.4 - No Auto Expand) loaded!');
 })();
